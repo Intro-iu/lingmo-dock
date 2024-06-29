@@ -22,6 +22,7 @@
 
 #include <NETWM>
 #include <KWindowSystem>
+#include <KWindowInfo>
 
 static Activity *SELF = nullptr;
 
@@ -39,8 +40,8 @@ Activity::Activity(QObject *parent)
 {
     onActiveWindowChanged();
 
-    connect(KWindowSystem::self(), &KWindowSystem::activeWindowChanged, this, &Activity::onActiveWindowChanged);
-    connect(KWindowSystem::self(), static_cast<void (KWindowSystem::*)(WId)>(&KWindowSystem::windowChanged),
+    connect(KX11Extras::self(), &KX11Extras::activeWindowChanged, this, &Activity::onActiveWindowChanged);
+    connect(KX11Extras::self(), static_cast<void (KX11Extras::*)(WId)>(&KX11Extras::windowChanged),
             this, &Activity::onActiveWindowChanged);
 }
 

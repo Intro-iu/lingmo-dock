@@ -279,6 +279,7 @@ void MainWindow::initScreens()
 void MainWindow::initSlideWindow()
 {
     KWindowEffects::SlideFromLocation location = KWindowEffects::NoEdge;
+    int offset = -1; // 默认偏移量，通常为-1，表示没有偏移
 
     if (m_settings->direction() == DockSettings::Left)
         location = KWindowEffects::LeftEdge;
@@ -287,8 +288,9 @@ void MainWindow::initSlideWindow()
     else if (m_settings->direction() == DockSettings::Bottom)
         location = KWindowEffects::BottomEdge;
 
-    KWindowEffects::slideWindow(winId(), location);
+    KWindowEffects::slideWindow(window(), location, offset);
 }
+
 
 void MainWindow::updateViewStruts()
 {
