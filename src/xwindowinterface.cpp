@@ -22,7 +22,6 @@
 
 #include <QTimer>
 #include <QDebug>
-#include <QX11Info>
 #include <QWindow>
 #include <QScreen>
 
@@ -69,7 +68,9 @@ void XWindowInterface::minimizeWindow(WId win)
 void XWindowInterface::closeWindow(WId id)
 {
     // FIXME: Why there is no such thing in KWindowSystem??
-    NETRootInfo(QX11Info::connection(), NET::CloseWindow).closeWindowRequest(id);
+    if (auto *native = dynamic_cast<QNativeInterface::QX11Application *>(qApp)) {
+        NETRootInfo(Qnative->connection(), NET::CloseWindow).closeWindowRequest(id);
+    }
 }
 
 void XWindowInterface::forceActiveWindow(WId win)
@@ -130,7 +131,12 @@ bool XWindowInterface::isAcceptableWindow(quint64 wid)
 
     // WM_TRANSIENT_FOR hint not set - normal window
     WId transFor = info.transientFor();
-    if (transFor == 0 || transFor == wid || transFor == (WId) QX11Info::appRootWindow())
+    const xcb_setup_t *setup = xcb_get_setup(connection);
+    xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
+    xcb_screen_t *screen = iter.data;
+    xcb_window_t rootWindow = screen->root;
+
+    if (transFor == 0 || transFor == wid || transFor == (WId) rootWindow)
         return true;
 
     info = KWindowInfo(transFor, NET::WMWindowType);
@@ -202,27 +208,39 @@ void XWindowInterface::startInitWindows()
 QString XWindowInterface::desktopFilePath(quint64 wid)
 {
     const KWindowInfo info(wid, NET::Properties(), NET::WM2WindowClass | NET::WM2DesktopFileName);
-    return Utils::instance()->desktopPathFromMetadata(info.windowClassClass(),
-                                                      NETWinInfo(QX11Info::connection(), wid,
-                                                                 QX11Info::appRootWindow(),
+    if (auto *native = dynamic_cast<QNativeInterface::QX11Application *>(qApp)){
+        const xcb_setup_t *setup = xcb_get_setup(connection);
+        xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
+        xcb_screen_t *screen = iter.data;
+
+        return Utils::instance()->desktopPathFromMetadata(info.windowClassClass(),
+                                                      NETWinInfo(native->connction(), wid,
+                                                                 screen->root,
                                                                  NET::WMPid,
                                                                  NET::Properties2()).pid(),
                                                       info.windowClassName());
+    }
 }
 
 void XWindowInterface::setIconGeometry(quint64 wid, const QRect &rect)
 {
-    NETWinInfo info(QX11Info::connection(),
-                    wid,
-                    (WId) QX11Info::appRootWindow(),
-                    NET::WMIconGeometry,
-                    QFlags<NET::Property2>(1));
-    NETRect nrect;
-    nrect.pos.x = rect.x();
-    nrect.pos.y = rect.y();
-    nrect.size.height = rect.height();
-    nrect.size.width = rect.width();
-    info.setIconGeometry(nrect);
+    if (auto *native = dynamic_cast<QNativeInterface::QX11Application *>(qApp)) {
+        const xcb_setup_t *setup = xcb_get_setup(connection);
+        xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
+        xcb_screen_t *screen = iter.data;
+
+        NETWinInfo info(native->connection(),
+                        wid,
+                        (WId) screen->root,
+                        NET::WMIconGeometry,
+                        QFlags<NET::Property2>(1));
+        NETRect nrect;
+        nrect.pos.x = rect.x();
+        nrect.pos.y = rect.y();
+        nrect.size.height = rect.height();
+        nrect.size.width = rect.width();
+        info.setIconGeometry(nrect);
+    }
 }
 
 void XWindowInterface::onWindowadded(quint64 wid)
