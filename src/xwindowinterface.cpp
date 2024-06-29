@@ -24,6 +24,7 @@
 #include <QDebug>
 #include <QWindow>
 #include <QScreen>
+#include <QGuiApplication>
 
 #include <KWindowEffects>
 #include <KWindowSystem>
