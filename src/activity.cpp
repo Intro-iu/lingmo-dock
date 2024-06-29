@@ -23,6 +23,7 @@
 #include <NETWM>
 #include <KWindowSystem>
 #include <KWindowInfo>
+#include <KX11Extras>
 
 static Activity *SELF = nullptr;
 

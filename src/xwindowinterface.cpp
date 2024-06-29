@@ -29,6 +29,7 @@
 #include <KWindowEffects>
 #include <KWindowSystem>
 #include <KWindowInfo>
+#include <KX11Extras>
 
 // X11
 #include <NETWM>
@@ -46,9 +47,9 @@ XWindowInterface *XWindowInterface::instance()
 XWindowInterface::XWindowInterface(QObject *parent)
     : QObject(parent)
 {
-    connect(KWindowSystem::self(), &KWindowSystem::windowAdded, this, &XWindowInterface::onWindowadded);
-    connect(KWindowSystem::self(), &KWindowSystem::windowRemoved, this, &XWindowInterface::windowRemoved);
-    connect(KWindowSystem::self(), &KWindowSystem::activeWindowChanged, this, &XWindowInterface::activeChanged);
+    connect(KX11Extras::self(), &KX11Extras::windowAdded, this, &XWindowInterface::onWindowadded);
+    connect(KX11Extras::self(), &KX11Extras::windowRemoved, this, &XWindowInterface::windowRemoved);
+    connect(KX11Extras::self(), &KX11Extras::activeWindowChanged, this, &XWindowInterface::activeChanged);
 }
 
 void XWindowInterface::enableBlurBehind(QWindow *view, bool enable, const QRegion &region)
@@ -58,19 +59,19 @@ void XWindowInterface::enableBlurBehind(QWindow *view, bool enable, const QRegio
 
 WId XWindowInterface::activeWindow()
 {
-    return KWindowSystem::activeWindow();
+    return KX11Extras::activeWindow();
 }
 
 void XWindowInterface::minimizeWindow(WId win)
 {
-    KWindowSystem::minimizeWindow(win);
+    KX11Extras::minimizeWindow(win);
 }
 
 void XWindowInterface::closeWindow(WId id)
 {
     // FIXME: Why there is no such thing in KWindowSystem??
     if (auto *native = dynamic_cast<QNativeInterface::QX11Application *>(qApp)) {
-        NETRootInfo(Qnative->connection(), NET::CloseWindow).closeWindowRequest(id);
+        NETRootInfo(native->connection(), NET::CloseWindow).closeWindowRequest(id);
     }
 }
 
