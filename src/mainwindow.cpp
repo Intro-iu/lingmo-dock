@@ -288,7 +288,7 @@ void MainWindow::initSlideWindow()
     else if (m_settings->direction() == DockSettings::Bottom)
         location = KWindowEffects::BottomEdge;
 
-    KWindowEffects::slideWindow(window(), location, offset);
+    KWindowEffects::slideWindow(Window(), location, offset);
 }
 
 
